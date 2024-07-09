@@ -38,11 +38,9 @@ def choose_action(state, unit, units, size):
         return random.choice(possible_actions)
     else:
         action_values = {action: q_table[key].get(action, 0) for action in possible_actions}
-        attackable_units = [u for u in units if u.color != unit.color and (u.x, u.y) in possible_actions]
-        if attackable_units:
-            attack_action = max(attackable_units, key=lambda u: action_values.get((u.x, u.y), 0))
-            return (attack_action.x, attack_action.y)
-        return max(action_values, key=action_values.get)
+        best_action = max(action_values, key=action_values.get)
+        return best_action
+
 
 def update_q_table(state, action, reward, next_state, units, size):
     key = state_to_key(state)

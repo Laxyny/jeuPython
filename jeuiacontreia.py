@@ -64,10 +64,7 @@ class Unit:
         """Vérifie si l'unité peut se déplacer vers une case."""
         if 0 <= x < size and 0 <= y < size:
             if abs(self.x - x) <= 1 and abs(self.y - y) <= 1:
-                if not any(
-                    u.x == x and u.y == y and u.color != self.color for u in units
-                ):
-                    return True
+                return True
         return False
 
     def move(self, x, y, units):
@@ -78,38 +75,32 @@ class Unit:
             self.moved = True
 
     def attack(self, target_unit, units, objectives):
-        """Attaque une unité ennemie."""
+        """Attaque une unité ennemie et la pousse d'un pixel."""
         if self.can_move(target_unit.x, target_unit.y, units):
             dx = target_unit.x - self.x
             dy = target_unit.y - self.y
             new_x, new_y = target_unit.x + dx, target_unit.y + dy
 
+            # Vérifier si l'unité cible sera poussée hors de la carte
+            if not (0 <= new_x < size and 0 <= new_y < size):
+                units.remove(target_unit)
+                return
+
+            # Vérifier si la nouvelle position est occupée par une autre unité
+            if any(u.x == new_x and u.y == new_y for u in units):
+                units.remove(target_unit)
+                return
+
             if target_unit.stunned:
                 target_unit.pv -= 1
                 target_unit.stunned = False
-                if target_unit.pv <= 0 or not (0 <= new_x < size and 0 <= new_y < size):
-                    units.remove(target_unit)
-                elif any(
-                    u.x == new_x and u.y == new_y and u.color != target_unit.color
-                    for u in units
-                ) or any(
-                    obj["x"] == new_x and obj["y"] == new_y and obj["type"] == "MAJOR"
-                    for obj in objectives
-                ):
+                if target_unit.pv <= 0:
                     units.remove(target_unit)
                 else:
                     target_unit.move(new_x, new_y, units)
             else:
-                if not (0 <= new_x < size and 0 <= new_y < size):
-                    units.remove(target_unit)
-                elif any(
-                    u.x == new_x and u.y == new_y and u.color != target_unit.color
-                    for u in units
-                ) or any(obj["x"] == new_x and obj["y"] == new_y for obj in objectives):
-                    units.remove(target_unit)
-                else:
-                    target_unit.move(new_x, new_y, units)
-                    target_unit.stunned = True
+                target_unit.move(new_x, new_y, units)
+                target_unit.stunned = True
 
     def get_symbols_on_same_tile(self, units):
         """Retourne les symboles des unités sur la même case."""
@@ -369,10 +360,10 @@ def run_game(auto_play=False, display=False, ia_vs_ia=False):
             else:
                 if not player_turn:
                     ia.enemy_turn(units, objectives, size)
-                    time.sleep(1)
+                    #time.sleep(1)
                 else:
                     ia.player_turn(units, objectives, size)
-                    time.sleep(1)
+                    #time.sleep(1)
                 player_turn = not player_turn
 
             for unit in units:

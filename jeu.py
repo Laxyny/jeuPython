@@ -1,6 +1,8 @@
 import pygame
 import random
 
+import ia
+
 # Initialisation de pygame
 pygame.init()
 
@@ -254,6 +256,9 @@ while running:
     if not victory:
         unit_moved = False
         for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    unit_moved = True
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -279,7 +284,7 @@ while running:
                         if selected_unit and selected_unit.color == (PLAYER_COLOR if player_turn else ENEMY_COLOR):
                             target_unit = [u for u in units if u.x == grid_x and u.y == grid_y and u.color != selected_unit.color]
                             
-                            for cible in target_unit:                                
+                            for cible in target_unit:
                                 selected_unit.attack(cible, units, objectives)
                                 
                             if selected_unit.can_move(grid_x, grid_y):
@@ -297,6 +302,9 @@ while running:
             player_score += player_score_turn
             enemy_score += enemy_score_turn
 
+            if not player_turn:  # C'est le tour de l'ennemi
+                ia.enemy_turn(units, objectives, size)
+
             if player_score >= 50:
                 victory = True
                 victory_message = "Victoire Joueur!"
@@ -311,7 +319,7 @@ while running:
                 victory_message = "Victoire Joueur!"
 
             pygame.display.flip()
-            pygame.time.wait(2000)
+
 
     screen.fill((0, 0, 0))
     draw_map(screen, game_map, tile_size)

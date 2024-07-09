@@ -41,7 +41,6 @@ def choose_action(state, unit, units, size):
         best_action = max(action_values, key=action_values.get)
         return best_action
 
-
 def update_q_table(state, action, reward, next_state, units, size):
     key = state_to_key(state)
     next_key = state_to_key(next_state)
@@ -65,6 +64,16 @@ def get_reward(unit, objectives, units):
             reward += 10
 
     return reward
+
+def perform_action(unit, action, units, objectives, size):
+    """Effectue une action choisie par l'IA."""
+    target_x, target_y = action
+    target_unit = next((u for u in units if u.x == target_x and u.y == target_y and u.color != unit.color), None)
+
+    if target_unit:
+        unit.attack(target_unit, units, objectives)
+    else:
+        unit.move(target_x, target_y, units)
 
 def enemy_turn(units, objectives, size):
     state = {'units': units, 'objectives': objectives}

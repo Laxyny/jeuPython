@@ -56,22 +56,23 @@ class Unit:
             if self.x == obj['x'] and self.y == obj['y']:
                 pygame.draw.rect(screen, (0, 255, 0), rect, 1)
 
-    def can_move(self, x, y):
+    def can_move(self, x, y, units):
         """Vérifie si l'unité peut se déplacer vers une case."""
         if 0 <= x < size and 0 <= y < size:
             if abs(self.x - x) <= 1 and abs(self.y - y) <= 1:
                 return True
         return False
 
-    def move(self, x, y):
+    def move(self, x, y, units):
         """Déplace l'unité vers une case spécifiée."""
-        self.x = x
-        self.y = y
-        self.moved = True
+        if self.can_move(x, y, units):
+            self.x = x
+            self.y = y
+            self.moved = True
 
     def attack(self, target_unit, units, objectives):
         """Attaque une unité ennemie."""
-        if self.can_move(target_unit.x, target_unit.y):
+        if self.can_move(target_unit.x, target_unit.y, units):
             dx = target_unit.x - self.x
             dy = target_unit.y - self.y
             new_x, new_y = target_unit.x + dx, target_unit.y + dy
@@ -86,13 +87,13 @@ class Unit:
                     if any(u.x == new_x and u.y == new_y and u.color != target_unit.color for u in units) or any(obj['x'] == new_x and obj['y'] == new_y and obj['type'] == 'MAJOR' for obj in objectives):
                         units.remove(target_unit)
                     else:
-                        target_unit.move(new_x, new_y)
+                        target_unit.move(new_x, new_y, units)
             else:
                 if 0 <= new_x < size and 0 <= new_y < size:
                     if any(u.x == new_x and u.y == new_y and u.color != target_unit.color for u in units) or any(obj['x'] == new_x and obj['y'] == new_y for obj in objectives):
                         units.remove(target_unit)
                     else:
-                        target_unit.move(new_x, new_y)
+                        target_unit.move(new_x, new_y, units)
                         target_unit.attacked_this_turn = True
 
     def get_symbols_on_same_tile(self, units):
@@ -222,6 +223,29 @@ def draw_scores(screen, player_score, enemy_score, width, height):
     screen.blit(player_score_img, (10, height + 70))
     screen.blit(enemy_score_img, (width - 150, height + 70))
 
+#compter le nombres de carrés (alliés et énemies)
+def count_units(units):
+    """Compte le nombre d'unités vivantes pour chaque équipe."""
+    player_units = sum(1 for unit in units if unit.color == PLAYER_COLOR)
+    enemy_units = sum(1 for unit in units if unit.color == ENEMY_COLOR)
+    return player_units, enemy_units
+
+
+#Affiche le nombre de joueurs encore vivants
+def draw_life_bars(screen, player_life_bars, enemy_life_bars, width, height):
+    """Affiche les barres de vie des joueurs."""
+    bar_width = 20
+    bar_height = 10
+    spacing = 5
+    x_offset = 10
+    y_offset = height + 100
+
+    for i in range(player_life_bars):
+        pygame.draw.rect(screen, PLAYER_COLOR, (x_offset + i * (bar_width + spacing), y_offset, bar_width, bar_height))
+
+    for i in range(enemy_life_bars):
+        pygame.draw.rect(screen, ENEMY_COLOR, (width - x_offset - (i + 1) * (bar_width + spacing), y_offset, bar_width, bar_height))
+
 # Afficher le message de victoire
 def draw_victory_message(screen, message, width, height):
     """Affiche le message de victoire."""
@@ -287,8 +311,8 @@ while running:
                             for cible in target_unit:
                                 selected_unit.attack(cible, units, objectives)
                                 
-                            if selected_unit.can_move(grid_x, grid_y):
-                                selected_unit.move(grid_x, grid_y)
+                            if selected_unit.can_move(grid_x, grid_y, units):
+                                selected_unit.move(grid_x, grid_y, units)
                                 selected_unit.selected = False
                                 selected_unit = None
 
@@ -305,10 +329,10 @@ while running:
             if not player_turn:  # C'est le tour de l'ennemi
                 ia.enemy_turn(units, objectives, size)
 
-            if player_score >= 50:
+            if player_score >= 500:
                 victory = True
                 victory_message = "Victoire Joueur!"
-            elif enemy_score >= 50:
+            elif enemy_score >= 500:
                 victory = True
                 victory_message = "Victoire Ennemi!"
             elif not any(unit.color == PLAYER_COLOR for unit in units):
@@ -332,6 +356,10 @@ while running:
     draw_end_turn_button(screen, width, height, interface_height)
     draw_unit_attributes(screen, selected_unit, width, height, interface_height)
     draw_scores(screen, player_score, enemy_score, width, height)
+
+    #Compter le nombre de carrés encore vivants sur la carte
+    player_units, enemy_units = count_units(units)
+    draw_life_bars(screen, player_units, enemy_units, width, height)
 
     if victory:
         draw_victory_message(screen, victory_message, width, height)

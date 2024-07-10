@@ -1,6 +1,6 @@
 from ia import save_q_table
 
-def train(num_episodes=10, epsilon_decay=0.99):
+def train(num_episodes=100, epsilon_decay=0.99):
     from jeuiacontreia import run_game
 
     epsilon = 0.1

@@ -92,23 +92,19 @@ def strategic_choose_action(state, unit, units, size, objectives):
 
     action_values = {action: q_table[key].get(action, 0) for action in possible_actions}
     
-    # Prioritize objectives
     objective_actions = [action for action in possible_actions if any(obj['x'] == action[0] and obj['y'] == action[1] for obj in objectives)]
     if objective_actions:
         return random.choice(objective_actions)  # Choisir aléatoirement parmi les actions d'objectif
     
-    # Reinforce if threatened
     for action in possible_actions:
         target_unit = next((u for u in units if u.x == action[0] and u.y == action[1] and u.color != unit.color), None)
         if target_unit:
-            return action  # Attack
+            return action
     
-    # Avoid corners
     non_corner_actions = [action for action in possible_actions if (action[0] != 0 and action[0] != size - 1 and action[1] != 0 and action[1] != size - 1)]
     if non_corner_actions:
         return random.choice(non_corner_actions)  # Choisir aléatoirement parmi les actions non-corners
     
-    # Default to best Q-value action
     best_action = max(action_values, key=action_values.get)
     return best_action
 

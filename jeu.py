@@ -2,6 +2,7 @@ import pygame
 import random
 
 import ia
+from ia import epsilon
 
 # Initialisation de pygame
 pygame.init()
@@ -327,7 +328,7 @@ while running:
             enemy_score += enemy_score_turn
 
             if not player_turn:  # C'est le tour de l'ennemi
-                ia.enemy_turn(units, objectives, size)
+                ia.enemy_turn(units, objectives, size, epsilon)
 
             if player_score >= 500:
                 victory = True

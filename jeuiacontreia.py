@@ -289,7 +289,7 @@ def draw_victory_message(screen, message, width, height):
     screen.blit(victory_img, (width // 2 - 100, height // 2 - 24))
 
 
-def run_game(auto_play=False, display=False, ia_vs_ia=False):
+def run_game(auto_play=False, display=False, epsilon = 0.1):
     # Configuration de la fenêtre
     if display:
         screen = pygame.display.set_mode((width, height + interface_height))
@@ -306,11 +306,6 @@ def run_game(auto_play=False, display=False, ia_vs_ia=False):
 
     selected_unit = None
     player_turn = True  # True pour le tour du joueur, False pour le tour de l'ennemi
-    units_to_move = [
-        unit
-        for unit in units
-        if (unit.color == PLAYER_COLOR if player_turn else unit.color == ENEMY_COLOR)
-    ]
     player_score = 0
     enemy_score = 0
     victory = False
@@ -380,10 +375,10 @@ def run_game(auto_play=False, display=False, ia_vs_ia=False):
                                         selected_unit = None
             else:
                 if not player_turn:
-                    ia.enemy_turn(units, objectives, size)
+                    ia.enemy_turn(units, objectives, size, epsilon = epsilon)
                     #time.sleep(1)
                 else:
-                    ia.player_turn(units, objectives, size)
+                    ia.player_turn(units, objectives, size, epsilon = epsilon)
                     #time.sleep(1)
                 player_turn = not player_turn
 
@@ -391,15 +386,6 @@ def run_game(auto_play=False, display=False, ia_vs_ia=False):
                 unit.moved = False  # Réinitialiser l'indicateur de mouvement
                 unit.attacked_this_turn = False  # Réinitialiser l'indicateur d'attaque
 
-            units_to_move = [
-                unit
-                for unit in units
-                if (
-                    unit.color == PLAYER_COLOR
-                    if player_turn
-                    else unit.color == ENEMY_COLOR
-                )
-            ]
             player_score_turn, enemy_score_turn = calculate_scores(units, objectives)
             player_score += player_score_turn
             enemy_score += enemy_score_turn
@@ -448,4 +434,4 @@ def run_game(auto_play=False, display=False, ia_vs_ia=False):
 
 
 if __name__ == "__main__":
-    run_game(auto_play=True, display=True, ia_vs_ia=True)
+    run_game(auto_play=True, display=True, epsilon=0.1)
